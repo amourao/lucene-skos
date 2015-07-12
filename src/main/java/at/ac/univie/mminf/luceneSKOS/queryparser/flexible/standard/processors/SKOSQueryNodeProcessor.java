@@ -207,7 +207,6 @@ public class SKOSQueryNodeProcessor extends QueryNodeProcessorImpl {
             if (buffer.hasAttribute(SKOSTypeAttribute.class) && boosts != null) {
 
               SKOSTypeAttribute skosAttr = buffer.getAttribute(SKOSTypeAttribute.class);
-
               children.add(new BoostQueryNode(new FieldQueryNode(field, term, -1, -1), getBoost(skosAttr.getSkosType())));
 
             } else {

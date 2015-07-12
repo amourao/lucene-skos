@@ -43,6 +43,10 @@ public class SKOSStandardQueryParser extends StandardQueryParser {
     }
   };
   
+  public SKOSStandardQueryParser() {
+	  super();  
+  }
+  
   public SKOSStandardQueryParser(Analyzer analyzer) {
     super();
     QueryNodeProcessorPipeline qnpp = ((QueryNodeProcessorPipeline) getQueryNodeProcessor());
@@ -54,6 +58,7 @@ public class SKOSStandardQueryParser extends StandardQueryParser {
       }
     }
     SKOSQueryNodeProcessor qnp = new SKOSQueryNodeProcessor(analyzer);
+    
     qnpp.add(i, qnp);
     
     // Set boost map

@@ -118,8 +118,8 @@ public class SKOSEngineImpl implements SKOSEngine {
   private static final String FIELD_PREF_LABEL = "pref";
   private static final String FIELD_ALT_LABEL = "alt";
   private static final String FIELD_HIDDEN_LABEL = "hidden";
-  private static final String FIELD_BROADER = "broader";
-  private static final String FIELD_NARROWER = "narrower";
+  protected static final String FIELD_BROADER = "broader";
+  protected static final String FIELD_NARROWER = "narrower";
   private static final String FIELD_BROADER_TRANSITIVE = "broaderTransitive";
   private static final String FIELD_NARROWER_TRANSITIVE = "narrowerTransitive";
   private static final String FIELD_RELATED = "related";
@@ -127,7 +127,7 @@ public class SKOSEngineImpl implements SKOSEngine {
   /**
    * The input SKOS model
    */
-  private Model skosModel;
+  protected Model skosModel;
   
   /**
    * The location of the concept index
@@ -262,13 +262,26 @@ public class SKOSEngineImpl implements SKOSEngine {
         }, "\n");
     UpdateRequest request = UpdateFactory.create(sparqlQuery);
     UpdateAction.execute(request, graphStore) ;
+    
+        
+    String sparqlQuery1 = StringUtils.join(new String[]{
+        "PREFIX skos: <http://www.w3.org/2004/02/skos/core#>",
+        "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>",
+        "INSERT { ?subject skos:narrower ?narrower }",
+        "WHERE {",
+          "?narrower skos:broader ?subject .",
+          "?narrower rdf:type skos:Concept",
+         "}",
+        }, "\n");
+    UpdateRequest request1 = UpdateFactory.create(sparqlQuery1);
+    UpdateAction.execute(request1, graphStore) ;
   }
 
   /**
    * Creates lucene documents from SKOS concept. In order to allow language
    * restrictions, one document per language is created.
    */
-  private Document createDocumentsFromConcept(Resource skos_concept) {
+  protected Document createDocumentsFromConcept(Resource skos_concept) {
     Document conceptDoc = new Document();
     
     String conceptURI = skos_concept.getURI();
@@ -392,7 +405,7 @@ public class SKOSEngineImpl implements SKOSEngine {
     return concepts.toArray(new String[concepts.size()]);
   }
   
-  private String[] getLabels(String conceptURI, String field)
+  protected String[] getLabels(String conceptURI, String field)
       throws IOException {
     List<String> labels = new ArrayList<String>();
     String[] concepts = readConceptFieldValues(conceptURI, field);
@@ -520,7 +533,7 @@ public class SKOSEngineImpl implements SKOSEngine {
   }
   
   /** Returns the values of a given field for a given concept */
-  private String[] readConceptFieldValues(String conceptURI, String field)
+  protected String[] readConceptFieldValues(String conceptURI, String field)
       throws IOException {
     
     Query query = new TermQuery(new Term(FIELD_URI, conceptURI));

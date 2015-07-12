@@ -35,12 +35,13 @@ import org.apache.lucene.util.Version;
 import at.ac.univie.mminf.luceneSKOS.analysis.tokenattributes.SKOSTypeAttribute.SKOSType;
 import at.ac.univie.mminf.luceneSKOS.skos.SKOSEngine;
 import at.ac.univie.mminf.luceneSKOS.skos.SKOSEngineFactory;
+import at.ac.univie.mminf.luceneSKOS.skos.impl.MeSHEngineImpl;
 
 /**
  * An analyzer for expanding fields that contain either (i) URI references to
  * SKOS concepts OR (ii) SKOS concept prefLabels as values.
  */
-public class SKOSAnalyzer extends StopwordAnalyzerBase {
+public class MeSHAnalyzer extends StopwordAnalyzerBase {
   
   /** The supported expansion types */
   public enum ExpansionType {
@@ -58,10 +59,27 @@ public class SKOSAnalyzer extends StopwordAnalyzerBase {
       SKOSType.BROADERTRANSITIVE, SKOSType.NARROWER,
       SKOSType.NARROWERTRANSITIVE};
   
-  private SKOSType[] types = DEFAULT_SKOS_TYPES;
+  public static final SKOSType[] DEFAULT_MESH_TYPES = new SKOSType[] {
+		SKOSType.PREF, SKOSType.ALT, SKOSType.BROADER1, SKOSType.BROADER2,
+		SKOSType.BROADER3, SKOSType.BROADER4, SKOSType.BROADER5,
+		SKOSType.BROADER6, SKOSType.BROADER7, SKOSType.BROADER8,
+		SKOSType.BROADER9, SKOSType.BROADER10, SKOSType.BROADER11,
+		SKOSType.BROADER12, SKOSType.NARROWER1, SKOSType.NARROWER2,
+		SKOSType.NARROWER3, SKOSType.NARROWER4, SKOSType.NARROWER5,
+		SKOSType.NARROWER6, SKOSType.NARROWER7, SKOSType.NARROWER8,
+		SKOSType.NARROWER9, SKOSType.NARROWER10, SKOSType.NARROWER11,
+		SKOSType.NARROWER12 };
+  
+  
+  public static final SKOSType[] ALT_MESH_TYPES = new SKOSType[] {
+		SKOSType.PREF, SKOSType.ALT, SKOSType.BROADER1, SKOSType.NARROWER1, SKOSType.NARROWER2};
+
+
+  
+  private SKOSType[] types = ALT_MESH_TYPES;
   
   /** A SKOS Engine instance */
-  protected SKOSEngine skosEngine;
+  protected MeSHEngineImpl skosEngine;
   
   /** The size of the buffer used for multi-term prediction */
   protected int bufferSize = SKOSLabelFilter.DEFAULT_BUFFER_SIZE;
@@ -77,53 +95,52 @@ public class SKOSAnalyzer extends StopwordAnalyzerBase {
    */
   public static final CharArraySet STOP_WORDS_SET = StopAnalyzer.ENGLISH_STOP_WORDS_SET;
   
-  public SKOSAnalyzer(Version matchVersion, CharArraySet stopWords,
-      SKOSEngine skosEngine, ExpansionType expansionType) {
+  public MeSHAnalyzer(Version matchVersion, CharArraySet stopWords,
+		  MeSHEngineImpl skosEngine, ExpansionType expansionType) {
     super(matchVersion, stopWords);
     this.skosEngine = skosEngine;
     this.expansionType = expansionType;
   }
   
-  public SKOSAnalyzer(Version matchVersion, SKOSEngine skosEngine,
+  public MeSHAnalyzer(Version matchVersion, MeSHEngineImpl skosEngine,
       ExpansionType expansionType) {
     this(matchVersion, STOP_WORDS_SET, skosEngine, expansionType);
   }
   
-  public SKOSAnalyzer(Version matchVersion, Reader stopwords,
-      SKOSEngine skosEngine, ExpansionType expansionType) throws IOException {
+  public MeSHAnalyzer(Version matchVersion, Reader stopwords,
+		  MeSHEngineImpl skosEngine, ExpansionType expansionType) throws IOException {
     this(matchVersion, loadStopwordSet(stopwords, matchVersion), skosEngine,
         expansionType);
   }
   
-  public SKOSAnalyzer(Version matchVersion, CharArraySet stopWords,
+  public MeSHAnalyzer(Version matchVersion, CharArraySet stopWords,
       String skosFile, ExpansionType expansionType, int bufferSize,
       String... languages) throws IOException {
     super(matchVersion, stopWords);
-    this.skosEngine = SKOSEngineFactory.getSKOSEngine(matchVersion, skosFile,
-        languages);
+    this.skosEngine = new MeSHEngineImpl(matchVersion, skosFile, languages);
     this.expansionType = expansionType;
     this.bufferSize = bufferSize;
   }
   
-  public SKOSAnalyzer(Version matchVersion, String skosFile,
+  public MeSHAnalyzer(Version matchVersion, String skosFile,
       ExpansionType expansionType, int bufferSize, String... languages)
       throws IOException {
     this(matchVersion, STOP_WORDS_SET, skosFile, expansionType, bufferSize,
         languages);
   }
   
-  public SKOSAnalyzer(Version matchVersion, String skosFile,
+  public MeSHAnalyzer(Version matchVersion, String skosFile,
       ExpansionType expansionType, int bufferSize) throws IOException {
     this(matchVersion, skosFile, expansionType, bufferSize, (String[]) null);
   }
   
-  public SKOSAnalyzer(Version matchVersion, String skosFile,
+  public MeSHAnalyzer(Version matchVersion, String skosFile,
       ExpansionType expansionType) throws IOException {
     this(matchVersion, skosFile, expansionType,
         SKOSLabelFilter.DEFAULT_BUFFER_SIZE);
   }
   
-  public SKOSAnalyzer(Version matchVersion, Reader stopwords, String skosFile,
+  public MeSHAnalyzer(Version matchVersion, Reader stopwords, String skosFile,
       ExpansionType expansionType, int bufferSize, String... languages)
       throws IOException {
     this(matchVersion, loadStopwordSet(stopwords, matchVersion), skosFile,
@@ -159,7 +176,7 @@ public class SKOSAnalyzer extends StopwordAnalyzerBase {
       Reader reader) {
     if (expansionType.equals(ExpansionType.URI)) {
       final KeywordTokenizer src = new KeywordTokenizer(reader);
-      TokenStream tok = new SKOSURIFilter(src, skosEngine,
+      TokenStream tok = new MeSHURIFilter(src, skosEngine,
           new StandardAnalyzer(matchVersion), types);
       tok = new LowerCaseFilter(matchVersion, tok);
       return new TokenStreamComponents(src, tok);
@@ -169,7 +186,7 @@ public class SKOSAnalyzer extends StopwordAnalyzerBase {
       TokenStream tok = new StandardFilter(matchVersion, src);
       // prior to this we get the classic behavior, standardfilter does it for
       // us.
-      tok = new SKOSLabelFilter(tok, skosEngine, new StandardAnalyzer(
+      tok = new MeSHLabelFilter(tok, skosEngine, new StandardAnalyzer(
           matchVersion), bufferSize, types);
       tok = new LowerCaseFilter(matchVersion, tok);
       tok = new StopFilter(matchVersion, tok, stopwords);
@@ -184,3 +201,4 @@ public class SKOSAnalyzer extends StopwordAnalyzerBase {
     }
   }
 }
+

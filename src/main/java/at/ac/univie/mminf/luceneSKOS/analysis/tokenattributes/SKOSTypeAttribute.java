@@ -32,32 +32,15 @@ public interface SKOSTypeAttribute extends Attribute {
    */
   public static enum SKOSType {
     
-    PREF, ALT, HIDDEN, BROADER, NARROWER, BROADERTRANSITIVE, NARROWERTRANSITIVE, RELATED;
+    PREF, ALT, HIDDEN, BROADER, NARROWER, BROADERTRANSITIVE, NARROWERTRANSITIVE, RELATED
+    ,BROADER1,BROADER2,BROADER3,BROADER4,BROADER5,BROADER6,BROADER7,BROADER8,BROADER9,BROADER10,BROADER11,BROADER12
+    ,NARROWER1,NARROWER2,NARROWER3,NARROWER4,NARROWER5,NARROWER6,NARROWER7,NARROWER8,NARROWER9,NARROWER10,NARROWER11,NARROWER12;
     
     /**
      * Returns the SKOSType given the ordinal.
      */
-    public static SKOSType fromInteger(int ordinal) {
-      switch (ordinal) {
-        case 0:
-          return PREF;
-        case 1:
-          return ALT;
-        case 2:
-          return HIDDEN;
-        case 3:
-          return BROADER;
-        case 4:
-          return NARROWER;
-        case 5:
-          return BROADERTRANSITIVE;
-        case 6:
-          return NARROWERTRANSITIVE;
-        case 7:
-          return RELATED;
-        default:
-          return RELATED;
-      }
+    private static SKOSType fromInteger(int ordinal) {
+    	return SKOSType.values()[ordinal];
     }
   }
   
